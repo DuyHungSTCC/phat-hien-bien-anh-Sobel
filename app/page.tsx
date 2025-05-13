@@ -17,7 +17,7 @@ export default function Page() {
   ]);
   const [useBothKernels, setUseBothKernels] = useState(true);
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
