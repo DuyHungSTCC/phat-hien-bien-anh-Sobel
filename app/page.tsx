@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 
 export default function Page() {
-  const [image, setImage] = useState(null);
-  const [outputImage, setOutputImage] = useState(null);
+  const [image, setImage] = useState<string | null>(null);
+  const [outputImage, setOutputImage] = useState<string | null>(null);
   const [kernelX, setKernelX] = useState([
     [-1, 0, 1],
     [-2, 0, 2],
