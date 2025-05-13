@@ -18,15 +18,19 @@ export default function Page() {
   const [useBothKernels, setUseBothKernels] = useState(true);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setImage(event.target.result);
+  const files = e.target.files;
+  if (!files || files.length === 0) return;
+  const file = files[0];
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    if (event.target?.result) {
+      setImage(event.target.result as string);
       setOutputImage(null);
-    };
-    reader.readAsDataURL(file);
+    }
   };
+  reader.readAsDataURL(file);
+};
+
 
   const handleKernelChange = (kernelSetter, i, j, value) => {
     kernelSetter(prev => {
