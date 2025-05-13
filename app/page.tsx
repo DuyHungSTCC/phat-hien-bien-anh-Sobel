@@ -5,12 +5,12 @@ import React, { useState } from 'react';
 export default function Page() {
   const [image, setImage] = useState<string | null>(null);
   const [outputImage, setOutputImage] = useState<string | null>(null);
-  const [kernelX, setKernelX] = useState([
+  const [kernelX, setKernelX] = useState<number[][]>([
     [-1, 0, 1],
     [-2, 0, 2],
     [-1, 0, 1],
   ]);
-  const [kernelY, setKernelY] = useState([
+  const [kernelY, setKernelY] = useState<number[][]>([
     [-1, -2, -1],
     [0, 0, 0],
     [1, 2, 1],
@@ -18,22 +18,28 @@ export default function Page() {
   const [useBothKernels, setUseBothKernels] = useState(true);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const files = e.target.files;
-  if (!files || files.length === 0) return;
-  const file = files[0];
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    if (event.target?.result) {
-      setImage(event.target.result as string);
-      setOutputImage(null);
-    }
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    const reader = new FileReader();
+    reader.onload = (event: ProgressEvent<FileReader>) => {
+      const result = event.target?.result;
+      if (typeof result === 'string') {
+        setImage(result);
+        setOutputImage(null);
+      }
+    };
+    reader.readAsDataURL(file);
   };
-  reader.readAsDataURL(file);
-};
 
-
-  const handleKernelChange = (kernelSetter, i, j, value) => {
-    kernelSetter(prev => {
+  const handleKernelChange = (
+    kernelSetter: React.Dispatch<React.SetStateAction<number[][]>>,
+    i: number,
+    j: number,
+    value: string
+  ) => {
+    kernelSetter((prev) => {
       const newKernel = [...prev];
       newKernel[i][j] = parseInt(value, 10) || 0;
       return newKernel;
@@ -47,6 +53,7 @@ export default function Page() {
     img.onload = () => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
+      if (!ctx) return;
       canvas.width = img.width;
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
@@ -98,80 +105,95 @@ export default function Page() {
     <main style={{ padding: 20, maxWidth: 800, margin: 'auto' }}>
       <h2>Ứng dụng phát hiện biên Sobel chuẩn (Liên hệ: cndhung@stcc.edu.vn)</h2>
       <input type="file" accept="image/*" onChange={handleImageUpload} />
-      
+
       <div style={{ display: 'flex', gap: 40, marginTop: 20 }}>
-  <div>
-    <h4 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-  Tuỳ chọn Gx:
-  <label style={{ fontWeight: 'normal' }}>
-    <input
-      type="checkbox"
-      onChange={() => setKernelX([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])}
-    />{' '}
-    Mặc định
-  </label>
-</h4>
-    <table style={{ borderCollapse: 'collapse' }}>
-      <tbody>
-        {kernelX.map((row, i) => (
-          <tr key={i}>
-            {row.map((value, j) => (
-              <td key={j}>
-                <input
-                  type="number"
-                  value={value}
-                  onChange={(e) => handleKernelChange(setKernelX, i, j, e.target.value)}
-                  style={{ width: 50, textAlign: 'center' }}
-                />
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-  <div>
-    <h4 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-  Tuỳ chọn Gy:
-  <label style={{ fontWeight: 'normal' }}>
-    <input
-      type="checkbox"
-      onChange={() => setKernelY([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])}
-    />{' '}
-    Mặc định
-  </label>
-</h4>
-    <table style={{ borderCollapse: 'collapse' }}>
-      <tbody>
-        {kernelY.map((row, i) => (
-          <tr key={i}>
-            {row.map((value, j) => (
-              <td key={j}>
-                <input
-                  type="number"
-                  value={value}
-                  onChange={(e) => handleKernelChange(setKernelY, i, j, e.target.value)}
-                  style={{ width: 50, textAlign: 'center' }}
-                />
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-</div>
-<div style={{ marginTop: 20 }}>
-  <label>
-    <input
-      type="checkbox"
-      checked={useBothKernels}
-      onChange={() => setUseBothKernels(!useBothKernels)}
-    />{' '}
-    Kết hợp cả Gx và Gy
-  </label>
-</div>
-      <button style={{ marginTop: 20 }} onClick={applyCustomEdgeDetection}>Phát hiện biên</button>
+        <div>
+          <h4 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            Tuỳ chọn Gx:
+            <label style={{ fontWeight: 'normal' }}>
+              <input
+                type="checkbox"
+                onChange={() => setKernelX([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])}
+              />{' '}
+              Mặc định
+            </label>
+          </h4>
+          <table style={{ borderCollapse: 'collapse' }}>
+            <tbody>
+              {kernelX.map((row, i) => (
+                <tr key={i}>
+                  {row.map((value, j) => (
+                    <td key={j}>
+                      <input
+                        type="number"
+                        value={value}
+                        onChange={(e) =>
+                          handleKernelChange(setKernelX, i, j, e.target.value)
+                        }
+                        style={{ width: 50, textAlign: 'center' }}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h4 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            Tuỳ chọn Gy:
+            <label style={{ fontWeight: 'normal' }}>
+              <input
+                type="checkbox"
+                onChange={() =>
+                  setKernelY([
+                    [-1, -2, -1],
+                    [0, 0, 0],
+                    [1, 2, 1],
+                  ])
+                }
+              />{' '}
+              Mặc định
+            </label>
+          </h4>
+          <table style={{ borderCollapse: 'collapse' }}>
+            <tbody>
+              {kernelY.map((row, i) => (
+                <tr key={i}>
+                  {row.map((value, j) => (
+                    <td key={j}>
+                      <input
+                        type="number"
+                        value={value}
+                        onChange={(e) =>
+                          handleKernelChange(setKernelY, i, j, e.target.value)
+                        }
+                        style={{ width: 50, textAlign: 'center' }}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style={{ marginTop: 20 }}>
+        <label>
+          <input
+            type="checkbox"
+            checked={useBothKernels}
+            onChange={() => setUseBothKernels(!useBothKernels)}
+          />{' '}
+          Kết hợp cả Gx và Gy
+        </label>
+      </div>
+
+      <button style={{ marginTop: 20 }} onClick={applyCustomEdgeDetection}>
+        Phát hiện biên
+      </button>
+
       {image && (
         <div style={{ display: 'flex', gap: 20, marginTop: 30 }}>
           <div style={{ flex: 1 }}>
